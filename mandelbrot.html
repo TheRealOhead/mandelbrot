@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+    <head>
+        <style>
+        </style>
+    </head>
+    <body>
+        X: <input id="x" value="0" type="number" /><br>
+        Y: <input id="y" value="0" type="number" /><br>
+        Zoom (inverse, smaller is closer): <input id="zoom" value="4" type="number" /><br>
+        Iterations: <input id="iterations" value="40" type="number" /><br>
+        [Press Enter to Generate]<br>
+        <script>
+            
+            let can = document.createElement('canvas');
+            document.body.appendChild(can);
+            let ctx = can.getContext('2d');
+            
+            can.width = 800;
+            can.height = 800;
+            
+            can.style.width = `${can.width}px`;
+            can.style.height = `${can.height}px`;
+                        
+            let xInput          = document.getElementById('x');
+            let yInput          = document.getElementById('y');
+            let zoomInput       = document.getElementById('zoom');
+            let iterationsInput = document.getElementById('iterations');
+            
+            function f(z,c) {
+                let done = [];
+                done[0] = z[0]**2 - z[1]**2 + c[0];
+                done[1] = 2 * z[0] * z[1] + c[1];
+                return done;
+            };
+
+            function draw() {
+                let progress = 0;
+                
+                for (let y = 0; y < can.height; y++) {
+                    for (let x = 0; x < can.width; x++) {
+                        
+                        
+                        let c = [(x-can.width/2)/can.width*zoomInput.value-(-xInput.value),
+                                 (y-can.height/2)/can.height*zoomInput.value-(-yInput.value)];
+
+                        let z = [0,0];
+                        
+                        
+                        // So, the way I'm testing whether the number has gotten past a threshhold is whether it has become NaN yet
+                        let whenBecameNaN = 0;
+                        for (let i = 0; i < iterationsInput.value; i++) {
+                            z = f(z,c);
+                            if (isNaN(z[0])) {
+                                whenBecameNaN = i;
+                                break;
+                            };
+                        };
+                        ctx.fillStyle = `#000`;
+                        isNaN(z[0]) ? ctx.fillStyle = `hsl(${whenBecameNaN*20}deg,100%,50%)` : '';
+                        ctx.fillRect(x,y,1,1);
+                    };
+                };
+            };
+            draw();
+            
+            document.addEventListener('keydown',(e)=>{
+                if (e.key == 'Enter') {
+                    
+                    // Generate loading screen
+                    ctx.fillStyle = '#ddd';
+                    ctx.fillRect(0,0,can.width,can.height);
+                    ctx.fillStyle = '#000';
+                    ctx.font = "30px Monospace";
+                    ctx.fillText('Loading...',0,can.height/2);
+                    
+                    // Give hte loading screen a chance to render before drawing the fractal
+                    setTimeout(draw,50);
+                };
+            });
+        </script>
+    </body>
+</html>
